@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<name>UVa Parking Locator</name>
+		<description><![CDATA[]]></description>
+		<Folder>
+			<name>UVa Parking</name>
+			<Placemark>
+				<name>Scott Stadium</name>
+				<description><![CDATA[test]]></description>
+				<styleUrl>#icon-503-DB4436-nodesc</styleUrl>
+				<Point>
+					<coordinates>-78.5113317,38.0311068,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Astronomy Building/OHill/First Year Residence</name>
+				<description><![CDATA[test]]></description>
+				<styleUrl>#icon-503-DB4436-nodesc</styleUrl>
+				<Point>
+					<coordinates>-78.5160524,38.0352519,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Central Grounds Parking Garage-Newcomb/Brown Residential College</name>
+				<description><![CDATA[test]]></description>
+				<styleUrl>#icon-503-DB4436-nodesc</styleUrl>
+				<Point>
+					<coordinates>-78.5075471,38.0363969,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Lower Hereford/Runk</name>
+				<description><![CDATA[test]]></description>
+				<styleUrl>#icon-503-DB4436-nodesc</styleUrl>
+				<Point>
+					<coordinates>-78.5197753,38.0287152,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Upper Hereford/Runk</name>
+				<description><![CDATA[test]]></description>
+				<styleUrl>#icon-503-DB4436-nodesc</styleUrl>
+				<Point>
+					<coordinates>-78.5192871,38.0311491,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Emmet/Ivy Garage</name>
+				<description><![CDATA[EIG or EIG/S pass required 24/hrs]]></description>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<Point>
+					<coordinates>-78.5078931,38.04182170000001,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Lambeth Field Parking</name>
+				<description><![CDATA[S2 pass required 8AM-5PM Mon-Fri.]]></description>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<Point>
+					<coordinates>-78.5045671,38.04182170000001,0.0</coordinates>
+				</Point>
+			</Placemark>
+		</Folder>
+		<Style id='icon-503-DB4436'>
+			<IconStyle>
+				<color>ff3644DB</color>
+				<scale>1.1</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+				<hotSpot x='16' y='31' xunits='pixels' yunits='insetPixels'>
+				</hotSpot>
+			</IconStyle>
+		</Style>
+		<Style id='icon-503-DB4436-nodesc'>
+			<IconStyle>
+				<color>ff3644DB</color>
+				<scale>1.1</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+				<hotSpot x='16' y='31' xunits='pixels' yunits='insetPixels'>
+				</hotSpot>
+			</IconStyle>
+			<BalloonStyle>
+				<text><![CDATA[<h3>$[name]</h3>]]></text>
+			</BalloonStyle>
+		</Style>
+	</Document>
+</kml>

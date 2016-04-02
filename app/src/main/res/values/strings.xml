@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CS4720ParkingProject</string>
+    <string name="title_activity_parking_map">UVa Parking</string>
+    <string name="home_add_prompt">Enter your home address:</string>
+    <string name="add_button_text">Set Home Address</string>
+    <string name="weather_default">Weather Unknown</string>
+</resources>
