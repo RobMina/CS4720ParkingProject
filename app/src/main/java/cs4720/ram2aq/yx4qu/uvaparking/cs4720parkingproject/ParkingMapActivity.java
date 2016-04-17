@@ -27,8 +27,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.kml.KmlLayer;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -47,25 +50,33 @@ import java.util.Date;
 public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
     private static final int REQUEST_FINE_LOC_PERMISSION = 2;
     private WeatherMonitor theMonitor;
     public static final String PREFS_NAME = "prefsFile";
-
+    private String homeAddress = "";
+    private double homeAddressLat = 0.0, homeAddressLong = 0.0;
+    private Marker homeMarker = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking_map);
+        startWeatherMonitor();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        homeAddress = settings.getString("homeAddress", "Home address not set");
+        homeAddressLat = settings.getFloat("homeAddressLat", 0);
+        homeAddressLong = settings.getFloat("homeAddressLong",0);
+        Toast.makeText(this, homeAddress, Toast.LENGTH_LONG).show();
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        startWeatherMonitor();
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        String homeAddress = settings.getString("homeAddress", "Home address not set");
-        Toast.makeText(this, homeAddress, Toast.LENGTH_LONG).show();
-
     }
 
     private void startWeatherMonitor() {
@@ -154,6 +165,16 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
             e.printStackTrace();
         }
 
+        // add home address marker
+        if (homeAddressLat != 0 && homeAddressLong !=0) {
+            if (homeMarker != null) homeMarker.remove();
+            homeMarker = googleMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(homeAddressLat, homeAddressLong))
+                    .title("Home")
+                    .draggable(false)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        }
+
         //center on UVa
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(38.03639,-78.50754),14));
 
@@ -200,24 +221,6 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         startActivity(intent);
     }
 
-    //starts the get home address search
-    public void getHomeAddress(View v) {
-        // launch autocomplete widget
-        AutocompleteFilter.Builder theFilterBlder = // only search for addresses
-                new AutocompleteFilter.Builder().setTypeFilter(AutocompleteFilter.TYPE_FILTER_ADDRESS);
-        LatLngBounds theBounds = new LatLngBounds(new LatLng(37.99413,-78.5749), new LatLng(38.10511,-78.4259)); // only search in C'ville
-        PlaceAutocomplete.IntentBuilder theIntentBuilder =
-                new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).setFilter(theFilterBlder.build()).setBoundsBias(theBounds);
-        try {
-            Intent intent = theIntentBuilder.build(this);
-            startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-        } catch (GooglePlayServicesRepairableException e) {
-            e.printStackTrace();
-        } catch (GooglePlayServicesNotAvailableException e) {
-            e.printStackTrace();
-        }
-    }
-
     // utility functions for making web request
     public String requestContent(String urlStr) {
         String result = null;
@@ -258,24 +261,4 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         return sb.toString();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
-                Log.i("AUTOCOMPLETE_RESULT", "Place: " + place.getName());
-                SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString("homeAddress", place.toString());
-                editor.commit();
-                Toast.makeText(this, "Successfully saved Home Address.", Toast.LENGTH_LONG).show();
-                // add marker to map and update DB
-            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                Log.i("AUTOCOMPLETE_RESULT", status.getStatusMessage());
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-        }
-    }
 }

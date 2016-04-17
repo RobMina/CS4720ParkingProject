@@ -17,13 +17,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         //for now, just maps parking location name to permit type.
         //probably want another table mapping locations to times
-        db.execSQL("create table parkingLocations (name VARCHAR(255), desc VARCHAR(255), lat DOUBLE, long DOUBLE, permitReq BOOLEAN, permitTypes VARCHAR(255), hasMeteredSpots BOOLEAN,  " +
+        db.execSQL("create table parkinglocations (name VARCHAR(255), desc VARCHAR(255), lat DOUBLE, long DOUBLE, permitReq BOOLEAN, permitTypes VARCHAR(255), hasMeteredSpots BOOLEAN,  " +
                 "monS DOUBLE, monE DOUBLE, tueS DOUBLE, tueE DOUBLE, wedS DOUBLE, wedE DOUBLE, thuS DOUBLE, thuE DOUBLE, friS DOUBLE, friE DOUBLE, satS DOUBLE, satE DOUBLE, sunS DOUBLE, sunE DOUBLE)");
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
-        db.execSQL("delete table parkingLocations");
+        db.execSQL("delete table parkinglocations");
         onCreate(db);
     }
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {

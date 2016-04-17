@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -26,10 +25,10 @@ public class LoadParkingDataService extends Service {
     private void load_info() {
         String s = "";
         try {
-            Reader r = new InputStreamReader(getResources().openRawResource(R.raw.parkingLocations));
+            Reader r = new InputStreamReader(getResources().openRawResource(R.raw.parkinglocations));
             BufferedReader buffer = new BufferedReader(r);
             String line = "";
-            String tableName ="parkingLocations";
+            String tableName ="parkinglocations";
             String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, " +
                     "monS, monE, tueS, tueE, wedS, wedE, thuS, thuE, friS, friE, satS, satE, sunS, sunE";
             String str1 = "INSERT INTO " + tableName + " (" + columns + ") values(";
@@ -75,7 +74,7 @@ public class LoadParkingDataService extends Service {
             // How you want the results sorted in the resulting Cursor
 
             Cursor cursor = db.query(
-                    "parkingLocations",  // The table to query
+                    "parkinglocations",  // The table to query
                     projection,                               // The columns to return
                     null,                                // The columns for the WHERE clause
                     null,                            // The values for the WHERE clause
