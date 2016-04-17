@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.Status;
@@ -193,7 +194,14 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
-    public void addButtonClicked(View v) {
+    public void goToSettings(View view)
+    {
+        Intent intent = new Intent(ParkingMapActivity.this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    //starts the get home address search
+    public void getHomeAddress(View v) {
         // launch autocomplete widget
         AutocompleteFilter.Builder theFilterBlder = // only search for addresses
                 new AutocompleteFilter.Builder().setTypeFilter(AutocompleteFilter.TYPE_FILTER_ADDRESS);

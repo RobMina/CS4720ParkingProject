@@ -29,7 +29,7 @@
         android:layout_marginTop="3dp"
         android:layout_marginLeft="3dp"
         android:enabled="true"
-        android:onClick="addButtonClicked"
+        android:onClick="goToSettings"
         android:nestedScrollingEnabled="false" />
 
     <TextView
