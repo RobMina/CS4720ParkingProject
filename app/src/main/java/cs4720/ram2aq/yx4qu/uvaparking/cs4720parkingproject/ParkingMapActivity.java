@@ -3,6 +3,7 @@ package cs4720.ram2aq.yx4qu.uvaparking.cs4720parkingproject;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.SystemClock;
@@ -48,6 +49,8 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
     private static final int REQUEST_FINE_LOC_PERMISSION = 2;
     private WeatherMonitor theMonitor;
+    public static final String PREFS_NAME = "prefsFile";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,10 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         startWeatherMonitor();
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        String homeAddress = settings.getString("homeAddress", "Home address not set");
+        Toast.makeText(this, homeAddress, Toast.LENGTH_LONG).show();
+
     }
 
     private void startWeatherMonitor() {
@@ -249,7 +256,11 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 Log.i("AUTOCOMPLETE_RESULT", "Place: " + place.getName());
-                Toast.makeText(this, "Saving home address not yet implemented.", Toast.LENGTH_LONG).show();
+                SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString("homeAddress", place.toString());
+                editor.commit();
+                Toast.makeText(this, "Successfully saved Home Address.", Toast.LENGTH_LONG).show();
                 // add marker to map and update DB
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
