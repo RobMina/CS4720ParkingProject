@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -38,6 +39,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
+    //returns an array list of the permit types given a string
     public ArrayList<String> getPermitTypes(String name) {
         SQLiteDatabase db = this.getWritableDatabase();
         String[] projection = {
@@ -55,13 +57,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
 
         //cursor.moveToFirst();
+        ArrayList<String> permitTypes = null;
         while (cursor.moveToNext()) {
             String currID = cursor.getString(
                     cursor.getColumnIndexOrThrow("permitTypes")
             );
+            String[] str = currID.split(";");
+            permitTypes = new ArrayList<String>(Arrays.asList(str));
             Log.i("DBData", currID);
         }
-        return null;
+        return permitTypes;
     }
 
 
