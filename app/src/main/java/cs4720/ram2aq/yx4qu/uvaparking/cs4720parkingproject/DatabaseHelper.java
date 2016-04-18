@@ -1,7 +1,12 @@
 package cs4720.ram2aq.yx4qu.uvaparking.cs4720parkingproject;
+
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import java.util.ArrayList;
 
 
 /**
@@ -14,23 +19,50 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
+
     public void onCreate(SQLiteDatabase db) {
         //for now, just maps parking location name to permit type.
         //probably want another table mapping locations to times
-        db.execSQL("drop table parkinginfo");
         db.execSQL("create table parkinginfo (name VARCHAR(255), desc VARCHAR(255), lat DOUBLE, long DOUBLE, permitReq BOOLEAN, permitTypes VARCHAR(255), hasMeteredSpots BOOLEAN,  " +
                 "monS DOUBLE, monE DOUBLE, tueS DOUBLE, tueE DOUBLE, wedS DOUBLE, wedE DOUBLE, thuS DOUBLE, thuE DOUBLE, friS DOUBLE, friE DOUBLE, satS DOUBLE, satE DOUBLE, sunS DOUBLE, sunE DOUBLE)");
     }
+
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
         db.execSQL("delete table parkinginfo");
         onCreate(db);
     }
+
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
 
+    public ArrayList<String> getPermitTypes(String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] projection = {
+                "permitTypes",
+        };
+
+        Cursor cursor = db.query(
+                "parkinginfo",         // The table to query
+                projection,                               // The columns to return
+                "name=?",                               // The columns for the WHERE clause
+                new String[]{name},                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+
+        //cursor.moveToFirst();
+        while (cursor.moveToNext()) {
+            String currID = cursor.getString(
+                    cursor.getColumnIndexOrThrow("permitTypes")
+            );
+            Log.i("DBData", currID);
+        }
+        return null;
+    }
 
 
 }

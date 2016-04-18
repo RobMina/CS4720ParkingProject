@@ -72,54 +72,9 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking_map);
-//        Intent intent = new Intent(this, LoadParkingDataService.class);
-//        bindService(intent, theConnection, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(this, LoadParkingDataService.class);
+        bindService(intent, theConnection, Context.BIND_AUTO_CREATE);
         startWeatherMonitor();
-
-        //initialize the database. probably not the best place to do this but it didn't work in LoadParkingDataService
-        try {
-            DatabaseHelper mDbHelper = new DatabaseHelper(this);
-            SQLiteDatabase db = mDbHelper.getWritableDatabase();
-            Reader r = new InputStreamReader(getResources().openRawResource(
-                    getResources().getIdentifier("parkinginfo",
-                            "raw", getPackageName())));
-            BufferedReader buffer = new BufferedReader(r);
-            String line = "";
-            String tableName ="parkinginfo";
-            String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, " +
-                    "monS, monE, tueS, tueE, wedS, wedE, thuS, thuE, friS, friE, satS, satE, sunS, sunE";
-            String str1 = "INSERT INTO " + tableName + " (" + columns + ") values(";
-            String str2 = ");";
-
-            db.beginTransaction();
-            Log.i("LoadInfoService", "Starting reading");
-            while ((line = buffer.readLine()) != null) {
-                Log.i("LoadInfoService", "reading row....");
-                Log.i("LoadInfoService", line);
-
-                StringBuilder sb = new StringBuilder(str1);
-                String[] str = line.split(",");
-                for (int i = 0; i<20; i++){
-                    if (i==0 || i==1 || i==5){
-                        sb.append( "'" + str[i] + "',");
-                    }else {
-                        sb.append(str[i] + ",");
-                    }
-                }
-                //append last value without comma
-                sb.append(str[20]);
-                sb.append(str2);
-                db.execSQL(sb.toString());
-            }
-            db.setTransactionSuccessful();
-            db.endTransaction();
-            db.close();
-
-            mDbHelper.close();
-        } catch (Exception e) {
-            Log.d("LoadInfoService",e.toString());
-            Log.d("LoadInfoService","Could not read from input file");
-        }
     }
 
     @Override
@@ -128,7 +83,7 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         homeAddress = settings.getString("homeAddress", "Home address not set");
         homeAddressLat = settings.getFloat("homeAddressLat", 0);
-        homeAddressLong = settings.getFloat("homeAddressLong",0);
+        homeAddressLong = settings.getFloat("homeAddressLong", 0);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -166,27 +121,27 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         @Override
         protected Void doInBackground(Void... params) {
             while (!isCancelled()) {
-                String result = requestContent(URL_BASE+CITY_CODE+"&"+KEY);
+                String result = requestContent(URL_BASE + CITY_CODE + "&" + KEY);
                 String display_text = "Weather Unknown";
                 if (result != null) {
-                    Log.d("WeatherMonitor",result);
-                    int startindex = result.indexOf("description")+14;
-                    int endindex = result.indexOf(',',startindex)-1;
+                    Log.d("WeatherMonitor", result);
+                    int startindex = result.indexOf("description") + 14;
+                    int endindex = result.indexOf(',', startindex) - 1;
                     if (startindex != 13) // implies description not found
                         display_text = "Current weather from openweathermap.org:\n"
-                                + result.substring(startindex,endindex);
-                    startindex = result.indexOf("temp")+6;
-                    endindex = result.indexOf(',',startindex);
+                                + result.substring(startindex, endindex);
+                    startindex = result.indexOf("temp") + 6;
+                    endindex = result.indexOf(',', startindex);
                     if (startindex != 5) {
-                        double kelvin = Double.parseDouble(result.substring(startindex,endindex));
-                        double fahrenheit = 1.8*(kelvin-273)+32;
-                        String fahrenheit_str = String.format("%.1f",fahrenheit);
+                        double kelvin = Double.parseDouble(result.substring(startindex, endindex));
+                        double fahrenheit = 1.8 * (kelvin - 273) + 32;
+                        String fahrenheit_str = String.format("%.1f", fahrenheit);
                         display_text += " " + fahrenheit_str + "\u2109";
                     }
-                    startindex = result.indexOf("dt")+4;
-                    endindex = result.indexOf(',',startindex);
+                    startindex = result.indexOf("dt") + 4;
+                    endindex = result.indexOf(',', startindex);
                     if (startindex != 3) {
-                        Long ms = Long.valueOf(result.substring(startindex,endindex))*1000;
+                        Long ms = Long.valueOf(result.substring(startindex, endindex)) * 1000;
                         Date weatherdate = new Date(ms);
                         display_text += " " + (new SimpleDateFormat("hh:mma").format(weatherdate));
                     }
@@ -229,7 +184,7 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         }
 
         // add home address marker
-        if (homeAddressLat != 0 && homeAddressLong !=0) {
+        if (homeAddressLat != 0 && homeAddressLong != 0) {
             if (homeMarker != null) homeMarker.remove();
             homeMarker = googleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(homeAddressLat, homeAddressLong))
@@ -239,7 +194,7 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         }
 
         //center on UVa
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(38.03639,-78.50754),14));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(38.03639, -78.50754), 14));
 
         // enable MyLocationLayer
         enableMyLocation();
@@ -268,7 +223,7 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     enableMyLocation();
                 } else {
-                    Log.d("enableMyLocation","User did not grant permission to use location.");
+                    Log.d("enableMyLocation", "User did not grant permission to use location.");
                 }
                 return;
             }
@@ -278,40 +233,16 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
-    public void goToSettings(View view)
-    {
+    public void goToSettings(View view) {
         Intent intent = new Intent(ParkingMapActivity.this, SettingsActivity.class);
         startActivity(intent);
     }
 
-    public void testDatabase(View view){
-        Log.i("DBData", "test db called!!");
-
+    public void testDatabase(View view) {
         DatabaseHelper mDbHelper = new DatabaseHelper(this);
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
-        String[] projection = {
-                "permitTypes",
-        };
-
-        Cursor cursor = db.query(
-                "parkinginfo",         // The table to query
-                projection,                               // The columns to return
-                null,                               // The columns for the WHERE clause
-                null,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                null                                 // The sort order
-        );
-
-//        cursor.moveToFirst();
-        while(cursor.moveToNext()) {
-            String currID = cursor.getString(
-                    cursor.getColumnIndexOrThrow("permitTypes")
-            );
-            Log.i("DBData", currID);
-        }
+        mDbHelper.getPermitTypes("Upper Hereford");
     }
+
     // utility functions for making web request
     public String requestContent(String urlStr) {
         String result = null;
