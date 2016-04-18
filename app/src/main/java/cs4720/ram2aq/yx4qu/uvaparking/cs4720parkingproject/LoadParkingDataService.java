@@ -33,7 +33,7 @@ public class LoadParkingDataService extends Service {
             String tableName ="parkinginfo";
             String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, " +
                     "monS, monE, tueS, tueE, wedS, wedE, thuS, thuE, friS, friE, satS, satE, sunS, sunE";
-            String str1 = "INSERT INTO " + tableName + " (" + columns + ") values(";
+            String str1 = "INSERT OR IGNORE INTO " + tableName + " (" + columns + ") values(";
             String str2 = ");";
 
             db.beginTransaction();
@@ -78,34 +78,6 @@ public class LoadParkingDataService extends Service {
     }
 
     public class LoadInfoBinder extends Binder {
-
-        // should this be in databasehelper.java??
-//        public ArrayList<String> getPermitTypes(String name) {
-//            DatabaseHelper mDbHelper = new DatabaseHelper(this);
-//            SQLiteDatabase db = mDbHelper.getWritableDatabase();
-//            String[] projection = {
-//                    "permitTypes",
-//            };
-//
-//            Cursor cursor = db.query(
-//                    "parkinginfo",         // The table to query
-//                    projection,                               // The columns to return
-//                    "name=?",                               // The columns for the WHERE clause
-//                    new String[] { name },                            // The values for the WHERE clause
-//                    null,                                     // don't group the rows
-//                    null,                                     // don't filter by row groups
-//                    null                                 // The sort order
-//            );
-//
-//            //cursor.moveToFirst();
-//            while(cursor.moveToNext()) {
-//                String currID = cursor.getString(
-//                        cursor.getColumnIndexOrThrow("permitTypes")
-//                );
-//                Log.i("DBData", currID);
-//            }
-//            return null;
-//        }
 
     }
 
