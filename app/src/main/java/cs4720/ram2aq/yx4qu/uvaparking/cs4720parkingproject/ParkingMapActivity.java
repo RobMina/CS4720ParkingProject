@@ -2,10 +2,16 @@ package cs4720.ram2aq.yx4qu.uvaparking.cs4720parkingproject;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -41,9 +47,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -53,6 +61,9 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     private static final int REQUEST_FINE_LOC_PERMISSION = 2;
     private WeatherMonitor theMonitor;
     public static final String PREFS_NAME = "prefsFile";
+    LoadParkingDataService.LoadInfoBinder theBinder;
+    boolean isBound = false;
+
     private String homeAddress = "";
     private double homeAddressLat = 0.0, homeAddressLong = 0.0;
     private Marker homeMarker = null;
@@ -61,7 +72,54 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking_map);
+//        Intent intent = new Intent(this, LoadParkingDataService.class);
+//        bindService(intent, theConnection, Context.BIND_AUTO_CREATE);
         startWeatherMonitor();
+
+        //initialize the database. probably not the best place to do this but it didn't work in LoadParkingDataService
+        try {
+            DatabaseHelper mDbHelper = new DatabaseHelper(this);
+            SQLiteDatabase db = mDbHelper.getWritableDatabase();
+            Reader r = new InputStreamReader(getResources().openRawResource(
+                    getResources().getIdentifier("parkinginfo",
+                            "raw", getPackageName())));
+            BufferedReader buffer = new BufferedReader(r);
+            String line = "";
+            String tableName ="parkinginfo";
+            String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, " +
+                    "monS, monE, tueS, tueE, wedS, wedE, thuS, thuE, friS, friE, satS, satE, sunS, sunE";
+            String str1 = "INSERT INTO " + tableName + " (" + columns + ") values(";
+            String str2 = ");";
+
+            db.beginTransaction();
+            Log.i("LoadInfoService", "Starting reading");
+            while ((line = buffer.readLine()) != null) {
+                Log.i("LoadInfoService", "reading row....");
+                Log.i("LoadInfoService", line);
+
+                StringBuilder sb = new StringBuilder(str1);
+                String[] str = line.split(",");
+                for (int i = 0; i<20; i++){
+                    if (i==0 || i==1 || i==5){
+                        sb.append( "'" + str[i] + "',");
+                    }else {
+                        sb.append(str[i] + ",");
+                    }
+                }
+                //append last value without comma
+                sb.append(str[20]);
+                sb.append(str2);
+                db.execSQL(sb.toString());
+            }
+            db.setTransactionSuccessful();
+            db.endTransaction();
+            db.close();
+
+            mDbHelper.close();
+        } catch (Exception e) {
+            Log.d("LoadInfoService",e.toString());
+            Log.d("LoadInfoService","Could not read from input file");
+        }
     }
 
     @Override
@@ -71,12 +129,12 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         homeAddress = settings.getString("homeAddress", "Home address not set");
         homeAddressLat = settings.getFloat("homeAddressLat", 0);
         homeAddressLong = settings.getFloat("homeAddressLong",0);
-        Toast.makeText(this, homeAddress, Toast.LENGTH_LONG).show();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        startWeatherMonitor();
     }
 
     private void startWeatherMonitor() {
@@ -88,6 +146,10 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     protected void onDestroy() {
         super.onDestroy();
         theMonitor.cancel(true);
+        if (isBound) {
+            unbindService(theConnection);
+            isBound = false;
+        }
     }
 
     private class WeatherMonitor extends AsyncTask<Void, String, Void> {
@@ -153,6 +215,7 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
         mMap = googleMap;
 
         // import markers from KML file
@@ -221,6 +284,34 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         startActivity(intent);
     }
 
+    public void testDatabase(View view){
+        Log.i("DBData", "test db called!!");
+
+        DatabaseHelper mDbHelper = new DatabaseHelper(this);
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        String[] projection = {
+                "permitTypes",
+        };
+
+        Cursor cursor = db.query(
+                "parkinginfo",         // The table to query
+                projection,                               // The columns to return
+                null,                               // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+
+//        cursor.moveToFirst();
+        while(cursor.moveToNext()) {
+            String currID = cursor.getString(
+                    cursor.getColumnIndexOrThrow("permitTypes")
+            );
+            Log.i("DBData", currID);
+        }
+    }
     // utility functions for making web request
     public String requestContent(String urlStr) {
         String result = null;
@@ -261,4 +352,19 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         return sb.toString();
     }
 
+    private ServiceConnection theConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            theBinder = (LoadParkingDataService.LoadInfoBinder) service;
+            isBound = true;
+            Log.i("from service connection", "service was connected");
+//            theAdapter.update_objects(theBinder.getTitles());
+//            theAdapter.notifyDataSetChanged(); // force update check boxes
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
 }

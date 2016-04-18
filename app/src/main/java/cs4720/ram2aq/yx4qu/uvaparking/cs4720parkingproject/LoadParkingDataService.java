@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -19,38 +20,53 @@ import java.util.ArrayList;
 public class LoadParkingDataService extends Service {
 
     IBinder theBinder;
-    DatabaseHelper mDbHelper = new DatabaseHelper(this);
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
     private void load_info() {
-        String s = "";
-        try {
-            Reader r = new InputStreamReader(getResources().openRawResource(R.raw.parkinglocations));
-            BufferedReader buffer = new BufferedReader(r);
-            String line = "";
-            String tableName ="parkinglocations";
-            String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, " +
-                    "monS, monE, tueS, tueE, wedS, wedE, thuS, thuE, friS, friE, satS, satE, sunS, sunE";
-            String str1 = "INSERT INTO " + tableName + " (" + columns + ") values(";
-            String str2 = ");";
-
-            db.beginTransaction();
-            while ((line = buffer.readLine()) != null) {
-                StringBuilder sb = new StringBuilder(str1);
-                String[] str = line.split(",");
-                for (int i = 0; i<20; i++){
-                    sb.append(str[i] + ",");
-                }
-                //append last value without comma
-                sb.append(str[21]);
-                sb.append(str2);
-                db.execSQL(sb.toString());
-            }
-            db.setTransactionSuccessful();
-            db.endTransaction();
-        } catch (Exception e) {
-            Log.d("LoadInfoService","Could not read from input file");
-        }
+//        try {
+//            DatabaseHelper mDbHelper = new DatabaseHelper(this);
+//            SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//            //delete table if it already exists. probably not what we should do but works for now.
+////            db.execSQL("drop table IF EXISTS parkinginfo");
+//            Reader r = new InputStreamReader(getResources().openRawResource(
+//                    getResources().getIdentifier("parkinginfo",
+//                            "raw", getPackageName())));
+//            BufferedReader buffer = new BufferedReader(r);
+//            String line = "";
+//            String tableName ="parkinginfo";
+//            String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, " +
+//                    "monS, monE, tueS, tueE, wedS, wedE, thuS, thuE, friS, friE, satS, satE, sunS, sunE";
+//            String str1 = "INSERT INTO " + tableName + " (" + columns + ") values(";
+//            String str2 = ");";
+//
+//            db.beginTransaction();
+//            Log.i("LoadInfoService", "Starting reading");
+//            while ((line = buffer.readLine()) != null) {
+//                Log.i("LoadInfoService", "reading row....");
+//                Log.i("LoadInfoService", line);
+//
+//                StringBuilder sb = new StringBuilder(str1);
+//                String[] str = line.split(",");
+//                for (int i = 0; i<20; i++){
+//                    if (i==0 || i==1 || i==5){
+//                        sb.append( "'" + str[i] + "',");
+//                    }else {
+//                        sb.append(str[i] + ",");
+//                    }
+//                }
+//                //append last value without comma
+//                sb.append(str[20]);
+//                sb.append(str2);
+//                db.execSQL(sb.toString());
+//            }
+//            db.setTransactionSuccessful();
+//            db.endTransaction();
+//            db.close();
+//
+//            mDbHelper.close();
+//        } catch (Exception e) {
+//            Log.d("LoadInfoService",e.toString());
+//            Log.d("LoadInfoService","Could not read from input file");
+//        }
     }
 
     @Nullable
@@ -65,33 +81,33 @@ public class LoadParkingDataService extends Service {
 
     public class LoadInfoBinder extends Binder {
 
-        //not finished writing
-        public ArrayList<String> getPermitTypes(String name ) {
-            String[] projection = {
-                    "permitTypes",
-            };
-
-            // How you want the results sorted in the resulting Cursor
-
-            Cursor cursor = db.query(
-                    "parkinglocations",  // The table to query
-                    projection,                               // The columns to return
-                    null,                                // The columns for the WHERE clause
-                    null,                            // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    null                                 // The sort order
-            );
-
-            //cursor.moveToFirst();
+        // should this be in databasehelper.java??
+//        public ArrayList<String> getPermitTypes(String name) {
+//            DatabaseHelper mDbHelper = new DatabaseHelper(this);
+//            SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//            String[] projection = {
+//                    "permitTypes",
+//            };
+//
+//            Cursor cursor = db.query(
+//                    "parkinginfo",         // The table to query
+//                    projection,                               // The columns to return
+//                    "name=?",                               // The columns for the WHERE clause
+//                    new String[] { name },                            // The values for the WHERE clause
+//                    null,                                     // don't group the rows
+//                    null,                                     // don't filter by row groups
+//                    null                                 // The sort order
+//            );
+//
+//            //cursor.moveToFirst();
 //            while(cursor.moveToNext()) {
 //                String currID = cursor.getString(
-//                        cursor.getColumnIndexOrThrow("compid")
+//                        cursor.getColumnIndexOrThrow("permitTypes")
 //                );
 //                Log.i("DBData", currID);
 //            }
-            return null;
-        }
+//            return null;
+//        }
 
     }
 
