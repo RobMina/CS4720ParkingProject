@@ -8,8 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -22,20 +21,15 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.places.AutocompleteFilter;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.kml.KmlLayer;
@@ -47,15 +41,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 
-public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCallback {
+public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
     private static final int REQUEST_FINE_LOC_PERMISSION = 2;
@@ -63,10 +54,13 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     public static final String PREFS_NAME = "prefsFile";
     LoadParkingDataService.LoadInfoBinder theBinder;
     boolean isBound = false;
+    DatabaseHelper mDbHelper = new DatabaseHelper(this);
 
-    private String homeAddress = "";
     private double homeAddressLat = 0.0, homeAddressLong = 0.0;
     private Marker homeMarker = null;
+
+    GoogleApiClient mGoogleApiClient;
+    Location mLastLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,13 +69,16 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         Intent intent = new Intent(this, LoadParkingDataService.class);
         bindService(intent, theConnection, Context.BIND_AUTO_CREATE);
         startWeatherMonitor();
+        buildGoogleApiClient();
+        if(mGoogleApiClient!= null){
+            mGoogleApiClient.connect();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        homeAddress = settings.getString("homeAddress", "Home address not set");
         homeAddressLat = settings.getFloat("homeAddressLat", 0);
         homeAddressLong = settings.getFloat("homeAddressLong", 0);
 
@@ -238,9 +235,15 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         startActivity(intent);
     }
 
-    public void testDatabase(View view) {
-        DatabaseHelper mDbHelper = new DatabaseHelper(this);
-        mDbHelper.getPermitTypes("Upper Hereford");
+    public void getClosestParking(View view) {
+//        mDbHelper.getPermitTypes("Upper Hereford");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("location not connected", "location not connected");
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        String closestParking = mDbHelper.getClosestParking(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        Toast.makeText(this, "The closest parking spot to you is " + closestParking, Toast.LENGTH_LONG).show();
     }
 
     // utility functions for making web request
@@ -298,4 +301,23 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
             isBound = false;
         }
     };
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    @Override
+    public void onConnected(Bundle arg0) {
+        return;
+    }
+    @Override
+    public void onConnectionSuspended(int arg0) {
+        return;
+    }
+    @Override
+    public void onConnectionFailed(ConnectionResult arg0) {
+        return;
+    }
 }

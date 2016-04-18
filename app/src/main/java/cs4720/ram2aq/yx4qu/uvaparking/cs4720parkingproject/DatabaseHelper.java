@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.location.Location;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -67,6 +68,60 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.i("DBData", currID);
         }
         return permitTypes;
+    }
+
+    public String getClosestParking(double lat, double lon) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] projection = {
+                "name",
+                "lat",
+                "long"
+        };
+
+        Cursor cursor = db.query(
+                "parkinginfo",         // The table to query
+                projection,                               // The columns to return
+                null,                               // The columns for the WHERE clause
+               null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+
+        cursor.moveToFirst();
+        String closestParking = null;
+        double maxDist = Double.POSITIVE_INFINITY;
+        while (cursor.moveToNext()) {
+            String locName = cursor.getString(
+                    cursor.getColumnIndexOrThrow("name")
+            );
+
+            Double parkLat = cursor.getDouble(
+                    cursor.getColumnIndexOrThrow("lat")
+            );
+
+            Double parkLong = cursor.getDouble(
+                    cursor.getColumnIndexOrThrow("long")
+            );
+
+            Location curLoc = new Location("curLoc");
+
+            curLoc.setLatitude(lat);
+            curLoc.setLongitude(lon);
+
+            Location parking = new Location("parking");
+
+            parking.setLatitude(parkLat);
+            parking.setLongitude(parkLong);
+
+            double distance = curLoc.distanceTo(parking);
+            if (distance < maxDist){
+                maxDist = distance;
+                closestParking = locName;
+            }
+
+        }
+        return closestParking;
     }
 
 

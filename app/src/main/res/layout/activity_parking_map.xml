@@ -36,13 +36,13 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/test_database"
+        android:text="@string/closest_parking"
         android:id="@+id/test_database"
         android:layout_marginTop="3dp"
         android:layout_marginLeft="3dp"
         android:layout_below="@+id/add_button"
         android:enabled="true"
-        android:onClick="testDatabase"
+        android:onClick="getClosestParking"
         android:nestedScrollingEnabled="false" />
 
     <TextView
