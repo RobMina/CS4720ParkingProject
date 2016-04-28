@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -28,25 +29,45 @@ public class SettingsActivity extends Activity {
     private String permitType = "";
     private String permitExpDate = "";
     private EditText permitTypeView = null;
+    private DatePicker permitExpDatePicker = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings);
+
+        // get existing settings
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         permitType = settings.getString("uvaParkingPermitType", "");
         permitExpDate = settings.getString("uvaParkingPermitExpDate","");
+
+        // get view references
         permitTypeView = (EditText) findViewById(R.id.permit_type_edittext);
+        permitExpDatePicker = (DatePicker) findViewById(R.id.permit_expiration_datepicker);
+
+        // update views to reflect existing settings
         if (!permitType.equals("")) permitTypeView.setText(permitType);
+        if (!permitExpDate.equals("")) {
+            // parse permit date
+            String[] toks = permitExpDate.split("/");
+            int month = Integer.parseInt(toks[0]);
+            int day = Integer.parseInt(toks[1]);
+            int year = Integer.parseInt(toks[2]);
+            permitExpDatePicker.init(year, month, day, null);
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        // update preferences
         permitType = permitTypeView.getText().toString();
+        permitExpDate = permitExpDatePicker.getMonth() + "/" + permitExpDatePicker.getDayOfMonth()
+                        + "/" + permitExpDatePicker.getYear();
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("uvaParkingPermitType", permitType);
+        editor.putString("uvaParkingPermitExpDate", permitExpDate);
         editor.commit();
     }
 
@@ -70,7 +91,7 @@ public class SettingsActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) { // return from Google place autocomplete
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 Log.i("AUTOCOMPLETE_RESULT", "Place: " + place.getName());
