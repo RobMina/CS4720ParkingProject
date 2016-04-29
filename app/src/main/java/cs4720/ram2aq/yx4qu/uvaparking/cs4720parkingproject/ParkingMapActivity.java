@@ -44,6 +44,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -167,17 +169,21 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        googleMap.clear();
         mMap = googleMap;
         mMap = googleMap;
 
-        // import markers from KML file
-        try {
-            KmlLayer layer = new KmlLayer(mMap, R.raw.uva_parking_locator, getApplicationContext());
-            layer.addLayerToMap();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        //create markers using database
+        Calendar c = Calendar.getInstance();
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+        int dayofweek = c.get(Calendar.DAY_OF_WEEK);
+
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        String userPermitType = settings.getString("uvaParkingPermitType", "");
+
+        ArrayList<MarkerOptions> parkingmarkers = mDbHelper.getParkSpotLists(hour, dayofweek, userPermitType);
+        for (MarkerOptions m : parkingmarkers ){
+            googleMap.addMarker(m);
         }
 
         // add home address marker
@@ -236,7 +242,6 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     }
 
     public void getClosestParking(View view) {
-//        mDbHelper.getPermitTypes("Upper Hereford");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d("location not connected", "location not connected");
             return;

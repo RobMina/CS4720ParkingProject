@@ -31,7 +31,7 @@ public class LoadParkingDataService extends Service {
             BufferedReader buffer = new BufferedReader(r);
             String line = "";
             String tableName ="parkinginfo";
-            String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, " +
+            String columns = "name, desc, lat, long, permitReq, permitTypes, hasMeteredSpots, isCovered," +
                     "monS, monE, tueS, tueE, wedS, wedE, thuS, thuE, friS, friE, satS, satE, sunS, sunE";
             String str1 = "INSERT OR IGNORE INTO " + tableName + " (" + columns + ") values(";
             String str2 = ");";
@@ -39,12 +39,12 @@ public class LoadParkingDataService extends Service {
             db.beginTransaction();
             Log.i("LoadInfoService", "Starting reading");
             while ((line = buffer.readLine()) != null) {
-                Log.i("LoadInfoService", "reading row....");
-                Log.i("LoadInfoService", line);
+//                Log.i("LoadInfoService", "reading row....");
+//                Log.i("LoadInfoService", line);
 
                 StringBuilder sb = new StringBuilder(str1);
                 String[] str = line.split(",");
-                for (int i = 0; i<20; i++){
+                for (int i = 0; i<21; i++){
                     if (i==0 || i==1 || i==5){
                         sb.append( "'" + str[i] + "',");
                     }else {
@@ -52,7 +52,7 @@ public class LoadParkingDataService extends Service {
                     }
                 }
                 //append last value without comma
-                sb.append(str[20]);
+                sb.append(str[21]);
                 sb.append(str2);
                 db.execSQL(sb.toString());
             }
