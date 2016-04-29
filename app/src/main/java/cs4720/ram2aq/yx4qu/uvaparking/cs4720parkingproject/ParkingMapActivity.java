@@ -157,6 +157,13 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
             TextView weather_text = (TextView) parent.findViewById(R.id.weather_text);
             weather_text.setText(currentWeather);
         }
+
+        public boolean isRaining(){
+            boolean israining = false;
+            TextView weather_text = (TextView) parent.findViewById(R.id.weather_text);
+            String weather = weather_text.getText().toString();
+            return weather.toLowerCase().contains("rain") || weather.toLowerCase().contains("rain");
+        }
     }
 
 
@@ -181,7 +188,7 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         String userPermitType = settings.getString("uvaParkingPermitType", "");
 
-        ArrayList<MarkerOptions> parkingmarkers = mDbHelper.getParkSpotLists(hour, dayofweek, userPermitType);
+        ArrayList<MarkerOptions> parkingmarkers = mDbHelper.getParkSpotLists(hour, dayofweek, userPermitType, theMonitor.isRaining());
         for (MarkerOptions m : parkingmarkers ){
             googleMap.addMarker(m);
         }

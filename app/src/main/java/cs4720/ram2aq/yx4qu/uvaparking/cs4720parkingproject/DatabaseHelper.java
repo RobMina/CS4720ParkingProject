@@ -46,7 +46,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     //returns an array list of the permit types given a string
-    public ArrayList<String> getPermitTypes(String name) {
+    public ArrayList<String> getAllPermitTypes(String name) {
         SQLiteDatabase db = this.getWritableDatabase();
         String[] projection = {
                 "permitTypes",
@@ -55,24 +55,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 "parkinginfo",         // The table to query
                 projection,                               // The columns to return
-                "name=?",                               // The columns for the WHERE clause
-                new String[]{name},                            // The values for the WHERE clause
+                null,                               // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
                 null,                                     // don't group the rows
                 null,                                     // don't filter by row groups
                 null                                 // The sort order
         );
 
         //cursor.moveToFirst();
-        ArrayList<String> permitTypes = null;
+        ArrayList<String> permitTypes = new ArrayList<String>();
 
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) { // If you use c.moveToNext() here, you will bypass the first row, which is WRONG
                 String currID = cursor.getString(cursor.getColumnIndexOrThrow("permitTypes"));
                 String[] str = currID.split(";");
-                permitTypes = new ArrayList<String>(Arrays.asList(str));
-                Log.i("DBData", currID);
+                ArrayList<String> permitsforloc = new ArrayList<String>(Arrays.asList(str));
+                for (String p : permitsforloc){
+                    if (!permitTypes.contains(p)){
+                        permitTypes.add(p);
+                    }
+                }
+
             }
         }
+        Log.i("PERMITS", permitTypes.toString());
         return permitTypes;
     }
 
@@ -125,7 +131,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     //current time is between 0 and 24 in 24 hour time
-    public ArrayList<MarkerOptions> getParkSpotLists(int hour, int dayofweek, String userPermitType) {
+    public ArrayList<MarkerOptions> getParkSpotLists(int hour, int dayofweek, String userPermitType, boolean isRaining) {
         ArrayList<MarkerOptions> parkingMarkers = new ArrayList<MarkerOptions>();
         String dayofweekstr = "";
         switch (dayofweek) {
@@ -166,7 +172,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "long",
                 "permitTypes",
                 "desc",
-
+                "isCovered"
         };
         String whereclause = dayofweekpermitcolS + " <= ?  AND " + dayofweekpermitcolE + "> ?";
         String[] whereArgs = new String[]{
@@ -189,6 +195,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Double parkLat = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"));
                 Double parkLong = cursor.getDouble(cursor.getColumnIndexOrThrow("long"));
                 String ptypes = cursor.getString(cursor.getColumnIndexOrThrow("permitTypes"));
+                int isCovered = cursor.getInt(cursor.getColumnIndexOrThrow("isCovered"));
+
                 String[] ptypesarray = ptypes.split(";");
                 ArrayList<String> permitTypes = new ArrayList<String>(Arrays.asList(ptypesarray));
                 if (!permitTypes.contains(userPermitType) && !permitTypes.contains("any")) {
@@ -201,13 +209,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     Log.i("cant park at", locName);
                 }
                 if (permitTypes.contains(userPermitType) || permitTypes.contains("any")) {
-                    parkingMarkers.add(new MarkerOptions()
-                            .position(new LatLng(parkLat, parkLong))
-                            .title(locName)
-                            .snippet(locDesc)
-                            .draggable(false)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-                    Log.i("CAN park at", locName);
+                    if (isRaining){
+                        if (isCovered==0){
+                            parkingMarkers.add(new MarkerOptions()
+                                    .position(new LatLng(parkLat, parkLong))
+                                    .title(locName)
+                                    .snippet(locDesc)
+                                    .draggable(false)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                        }else{
+                            parkingMarkers.add(new MarkerOptions()
+                                    .position(new LatLng(parkLat, parkLong))
+                                    .title(locName)
+                                    .snippet(locDesc)
+                                    .draggable(false)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                        }
+                    }else {
+                        parkingMarkers.add(new MarkerOptions()
+                                .position(new LatLng(parkLat, parkLong))
+                                .title(locName)
+                                .snippet(locDesc)
+                                .draggable(false)
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    }
                 }
                 cursor.moveToNext();
             }
@@ -233,13 +258,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Double parkLat = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"));
                 Double parkLong = cursor.getDouble(cursor.getColumnIndexOrThrow("long"));
                 String ptypes = cursor.getString(cursor.getColumnIndexOrThrow("permitTypes"));
+                int isCovered = cursor.getInt(cursor.getColumnIndexOrThrow("isCovered"));
+
                 String[] ptypesarray = ptypes.split(";");
-                parkingMarkers.add(new MarkerOptions()
-                        .position(new LatLng(parkLat, parkLong))
-                        .title(locName)
-                        .snippet(locDesc)
-                        .draggable(false)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+                if (isRaining){
+                    if (isCovered==0){
+                        parkingMarkers.add(new MarkerOptions()
+                                .position(new LatLng(parkLat, parkLong))
+                                .title(locName)
+                                .snippet(locDesc)
+                                .draggable(false)
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                    }else{
+                        parkingMarkers.add(new MarkerOptions()
+                                .position(new LatLng(parkLat, parkLong))
+                                .title(locName)
+                                .snippet(locDesc)
+                                .draggable(false)
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    }
+                }else {
+                    parkingMarkers.add(new MarkerOptions()
+                            .position(new LatLng(parkLat, parkLong))
+                            .title(locName)
+                            .snippet(locDesc)
+                            .draggable(false)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                }
                 Log.i("CAN park at", locName);
                 cursor.moveToNext();
             }
