@@ -6,6 +6,14 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/start_picture_activity_text"
+        android:id="@+id/start_picture_activity_button"
+        android:layout_gravity="center_horizontal"
+        android:onClick="startPictureActivity" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/home_add_prompt"
         android:id="@+id/set_home_address_button"
         android:layout_gravity="center_horizontal"
