@@ -71,6 +71,11 @@ public class SettingsActivity extends Activity {
         editor.commit();
     }
 
+    public void startPictureActivity(View v) {
+        Intent intent = new Intent(SettingsActivity.this, PictureActivity.class);
+        startActivity(intent);
+    }
+
     //starts the get home address search
     public void getHomeAddress(View v) {
         // launch autocomplete widget
