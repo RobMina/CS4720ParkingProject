@@ -60,6 +60,7 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
 
     private double homeAddressLat = 0.0, homeAddressLong = 0.0;
     private Marker homeMarker = null;
+    private ArrayList<Marker> parkingMarkers = null;
 
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
@@ -159,10 +160,9 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
         }
 
         public boolean isRaining(){
-            boolean israining = false;
             TextView weather_text = (TextView) parent.findViewById(R.id.weather_text);
             String weather = weather_text.getText().toString();
-            return weather.toLowerCase().contains("rain") || weather.toLowerCase().contains("rain");
+            return weather.toLowerCase().contains("rain") || weather.toLowerCase().contains("storm");
         }
     }
 
@@ -178,7 +178,6 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
     public void onMapReady(GoogleMap googleMap) {
         googleMap.clear();
         mMap = googleMap;
-        mMap = googleMap;
 
         //create markers using database
         Calendar c = Calendar.getInstance();
@@ -187,10 +186,18 @@ public class ParkingMapActivity extends FragmentActivity implements OnMapReadyCa
 
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         String userPermitType = settings.getString("uvaParkingPermitType", "");
+        Log.d("onMapReady","Permit type: " + userPermitType);
 
-        ArrayList<MarkerOptions> parkingmarkers = mDbHelper.getParkSpotLists(hour, dayofweek, userPermitType, theMonitor.isRaining());
-        for (MarkerOptions m : parkingmarkers ){
-            googleMap.addMarker(m);
+        if (parkingMarkers != null) {
+            for (Marker m : parkingMarkers)
+                m.remove();
+            parkingMarkers.clear();
+        } else {
+            parkingMarkers = new ArrayList<Marker>();
+        }
+        ArrayList<MarkerOptions> parkingMarkerOptions = mDbHelper.getParkSpotLists(hour, dayofweek, userPermitType, theMonitor.isRaining());
+        for (MarkerOptions m : parkingMarkerOptions ){
+            parkingMarkers.add(googleMap.addMarker(m));
         }
 
         // add home address marker

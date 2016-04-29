@@ -58,17 +58,22 @@ public class SettingsActivity extends Activity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onPause() {
+        super.onPause();
         // update preferences
         permitType = permitTypeView.getText().toString();
         permitExpDate = permitExpDatePicker.getMonth() + "/" + permitExpDatePicker.getDayOfMonth()
-                        + "/" + permitExpDatePicker.getYear();
+                + "/" + permitExpDatePicker.getYear();
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("uvaParkingPermitType", permitType);
         editor.putString("uvaParkingPermitExpDate", permitExpDate);
         editor.commit();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 
     public void startPictureActivity(View v) {
